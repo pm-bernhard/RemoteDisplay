@@ -1,3 +1,4 @@
+project(RemoteDisplay)
 cmake_minimum_required(VERSION 2.8)
 
 # put binaries to same dir for easier execution

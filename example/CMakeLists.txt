@@ -1,18 +1,29 @@
 project(RemoteDisplayExample)
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8.11)
 
-if(CMAKE_COMPILER_IS_GNUCXX)
+if(CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
     add_definitions("-std=gnu++0x")
-endif(CMAKE_COMPILER_IS_GNUCXX)
+endif()
 
-set(CMAKE_AUTOMOC TRUE)
-find_package(Qt4 REQUIRED QtCore QtGui)
-include(${QT_USE_FILE})
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-aux_source_directory(. SRC_LIST)
+find_package(Qt5Core)
+find_package(Qt5Gui)
+
+include_directories(${Qt5Core_INCLUDE_DIRS})
+include_directories(${Qt5Gui_INCLUDE_DIRS})
+
+set(SRC_LIST main.cpp)
+
 add_executable(${PROJECT_NAME} ${SRC_LIST})
 
-target_link_libraries(${PROJECT_NAME} RemoteDisplay ${QT_LIBRARIES})
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${QT_EXECUTEABLE_FLAGS}")
+
+target_link_libraries(${PROJECT_NAME} RemoteDisplay
+	${Qt5Gui_LIBRARIES}
+	${Qt5Core_LIBRARIES})
+
 include_directories(${RemoteDisplay_SOURCE_DIR})
 
 install(TARGETS ${PROJECT_NAME}

@@ -8,7 +8,6 @@
 
 #include <freerdp/freerdp.h>
 #include <freerdp/input.h>
-#include <freerdp/utils/tcp.h>
 #include <freerdp/cache/pointer.h>
 #include <freerdp/client/channels.h>
 #include <freerdp/client/cmdline.h>
@@ -49,6 +48,44 @@ void* channelAddinLoadHook(LPCSTR pszName, LPSTR pszSubsystem, LPSTR pszType, DW
 
 BOOL FreeRdpClient::PreConnectCallback(freerdp* instance) {
     freerdp_channels_pre_connect(instance->context->channels, instance);
+
+    rdpSettings* settings = instance->settings;
+     BOOL bitmap_cache = settings->BitmapCacheEnabled;
+     settings->OrderSupport[NEG_DSTBLT_INDEX] = TRUE;
+     settings->OrderSupport[NEG_PATBLT_INDEX] = TRUE;
+     settings->OrderSupport[NEG_SCRBLT_INDEX] = TRUE;
+     settings->OrderSupport[NEG_OPAQUE_RECT_INDEX] = TRUE;
+     settings->OrderSupport[NEG_DRAWNINEGRID_INDEX] = FALSE;
+     settings->OrderSupport[NEG_MULTIDSTBLT_INDEX] = FALSE;
+     settings->OrderSupport[NEG_MULTIPATBLT_INDEX] = FALSE;
+     settings->OrderSupport[NEG_MULTISCRBLT_INDEX] = FALSE;
+     settings->OrderSupport[NEG_MULTIOPAQUERECT_INDEX] = TRUE;
+     settings->OrderSupport[NEG_MULTI_DRAWNINEGRID_INDEX] = FALSE;
+     settings->OrderSupport[NEG_LINETO_INDEX] = TRUE;
+     settings->OrderSupport[NEG_POLYLINE_INDEX] = TRUE;
+     settings->OrderSupport[NEG_MEMBLT_INDEX] = bitmap_cache;
+     settings->OrderSupport[NEG_MEM3BLT_INDEX] = TRUE;
+     settings->OrderSupport[NEG_MEMBLT_V2_INDEX] = bitmap_cache;
+     settings->OrderSupport[NEG_MEM3BLT_V2_INDEX] = FALSE;
+     settings->OrderSupport[NEG_SAVEBITMAP_INDEX] = FALSE;
+     settings->OrderSupport[NEG_GLYPH_INDEX_INDEX] = TRUE;
+     settings->OrderSupport[NEG_FAST_INDEX_INDEX] = TRUE;
+     settings->OrderSupport[NEG_FAST_GLYPH_INDEX] = TRUE;
+     settings->OrderSupport[NEG_POLYGON_SC_INDEX] = FALSE;
+     settings->OrderSupport[NEG_POLYGON_CB_INDEX] = FALSE;
+     settings->OrderSupport[NEG_ELLIPSE_SC_INDEX] = FALSE;
+     settings->OrderSupport[NEG_ELLIPSE_CB_INDEX] = FALSE;
+
+     settings->FrameAcknowledge = 10;
+
+     //freerdp_register_addin_provider(freerdp_channels_load_static_addin_entry, 0);
+     //freerdp_client_load_addins(instance->context->channels, instance->settings);
+
+     freerdp_channels_pre_connect(instance->context->channels, instance);
+
+     return TRUE;
+
+
     emit getMyContext(instance)->self->aboutToConnect();
     return TRUE;
 }
@@ -57,7 +94,17 @@ BOOL FreeRdpClient::PostConnectCallback(freerdp* instance) {
     auto context = getMyContext(instance);
     auto settings = instance->context->settings;
     auto self = context->self;
+    UINT32 gdi_flags;
     pointer_cache_register_callbacks(instance->update);
+
+    if (instance->settings->ColorDepth > 16)
+      gdi_flags = CLRBUF_32BPP; //| CLRCONV_ALPHA | CLRCONV_INVERT;
+    else
+      gdi_flags = CLRBUF_16BPP;
+
+    gdi_init(instance, gdi_flags, NULL);
+
+
 
     rdpPointer pointer;
     memset(&pointer, 0, sizeof(rdpPointer));
@@ -65,8 +112,8 @@ BOOL FreeRdpClient::PostConnectCallback(freerdp* instance) {
     pointer.New = PointerNewCallback;
     pointer.Free = PointerFreeCallback;
     pointer.Set = PointerSetCallback;
-    pointer.SetNull = NULL;
-    pointer.SetDefault = NULL;
+    pointer.SetNull = PointerSetNullCallback;
+    pointer.SetDefault = PointerSetDefaultCallback;
     graphics_register_pointer(context->freeRdpContext.graphics, &pointer);
 
 #ifdef Q_OS_UNIX
@@ -90,19 +137,101 @@ int FreeRdpClient::ReceiveChannelDataCallback(freerdp *instance, int channelId,
     return freerdp_channels_data(instance, channelId, data, size, flags, total_size);
 }
 
-void FreeRdpClient::PointerNewCallback(rdpContext *context, rdpPointer *pointer) {
-    getMyContext(context)->self->pointerChangeSink->addPointer(pointer);
+BOOL FreeRdpClient::PointerNewCallback(rdpContext *context, rdpPointer *pointer) {
+    return getMyContext(context)->self->pointerChangeSink->addPointer(pointer);
 }
 
 void FreeRdpClient::PointerFreeCallback(rdpContext *context, rdpPointer *pointer) {
     getMyContext(context)->self->pointerChangeSink->removePointer(pointer);
 }
 
-void FreeRdpClient::PointerSetCallback(rdpContext *context, rdpPointer *pointer) {
-    getMyContext(context)->self->pointerChangeSink->changePointer(pointer);
+BOOL FreeRdpClient::PointerSetCallback(rdpContext *context, rdpPointer *pointer) {
+   return getMyContext(context)->self->pointerChangeSink->changePointer(pointer);
 }
 
-void FreeRdpClient::BitmapUpdateCallback(rdpContext *context, BITMAP_UPDATE *updates) {
+BOOL FreeRdpClient::PointerSetNullCallback(rdpContext* context) {
+    return TRUE;
+}
+
+BOOL FreeRdpClient::PointerSetDefaultCallback(rdpContext* context) {
+    return TRUE;
+}
+
+BOOL FreeRdpClient::BeginPaintCallback(rdpContext *context) {
+#if 0
+    rdpGdi* gdi = context->gdi;
+    gdi->primary->hdc->hwnd->invalid->null = 1;
+    gdi->primary->hdc->hwnd->ninvalid = 0;
+#endif
+
+
+    return TRUE;
+}
+
+BOOL FreeRdpClient::EndPaintCallback(rdpContext *context) {
+    int i;
+    int ninvalid;
+    HGDI_RGN cinvalid;
+    int x1, y1, x2, y2;
+    rdpContext *ctx = (rdpContext*)context;
+    rdpSettings* settings = context->instance->settings;
+    int length;
+    int scanline;
+    //UINT8 *dstp;
+    //UINT8 *srcp = gdi->primary_buffer;
+    auto self = getMyContext(context)->self;
+    auto sink = self->bitmapRectangleSink;
+    if (!sink)
+        return TRUE;
+
+#if 0
+    ninvalid = ctx->rdpCtx.gdi->primary->hdc->hwnd->ninvalid;
+    if (ninvalid == 0)
+    {
+        return TRUE;
+    }
+
+    cinvalid = ctx->rdpCtx.gdi->primary->hdc->hwnd->cinvalid;
+
+    x1 = cinvalid[0].x;
+    y1 = cinvalid[0].y;
+    x2 = cinvalid[0].x + cinvalid[0].w;
+    y2 = cinvalid[0].y + cinvalid[0].h;
+
+
+    for (i = 0; i < ninvalid; i++)
+    {
+        x1 = MIN(x1, cinvalid[i].x);
+        y1 = MIN(y1, cinvalid[i].y);
+        x2 = MAX(x2, cinvalid[i].x + cinvalid[i].w);
+        y2 = MAX(y2, cinvalid[i].y + cinvalid[i].h);
+    }
+      length = width * bpp;
+      scanline = wBuf * bpp;
+
+      srcp = (UINT8*) &srcBuf[(scanline * y) + (x * bpp)];
+      dstp = (UINT8*) &dstBuf[(scanline * y) + (x * bpp)];
+
+      for (i = 0; i < height; i++)
+      {
+        memcpy(dstp, srcp, length);
+        srcp += scanline;
+        dstp += scanline;
+      }
+     // copy_pixel_buffer(pixels, gdi->primary_buffer, x, y, width, height, gdi->width, gdi->height, gdi->bytesPerPixel);
+
+#endif
+      rdpGdi *gdi = context->gdi;
+     QByteArray data = QByteArray((const char *)gdi->primary_buffer, gdi->width*gdi->height*gdi->bytesPerPixel);
+
+    QRect rect(0, 0, gdi->width, gdi->height);
+    sink->addRectangle(rect, data);
+    emit self->desktopUpdated();
+
+      return TRUE;
+}
+
+BOOL FreeRdpClient::BitmapUpdateCallback(rdpContext *context, BITMAP_UPDATE *updates) {
     auto self = getMyContext(context)->self;
     auto sink = self->bitmapRectangleSink;
 
@@ -115,9 +244,12 @@ void FreeRdpClient::BitmapUpdateCallback(rdpContext *context, BITMAP_UPDATE *upd
 
             if (u->compressed) {
                 data.resize(u->width * u->height * (u->bitsPerPixel / 8));
+#if 0 // FIXME
                 if (!bitmap_decompress(u->bitmapDataStream, (BYTE*)data.data(), u->width, u->height, u->bitmapLength, u->bitsPerPixel, u->bitsPerPixel)) {
                     qWarning() << "Bitmap update decompression failed";
                 }
+#endif
+
             } else {
                 data = QByteArray((char*)u->bitmapDataStream, u->bitmapLength);
             }
@@ -126,6 +258,7 @@ void FreeRdpClient::BitmapUpdateCallback(rdpContext *context, BITMAP_UPDATE *upd
         }
         emit self->desktopUpdated();
     }
+    return TRUE;
 }
 
 FreeRdpClient::FreeRdpClient(PointerChangeSink *pointerSink)
@@ -133,9 +266,9 @@ FreeRdpClient::FreeRdpClient(PointerChangeSink *pointerSink)
       pointerChangeSink(pointerSink) {
 
     if (instanceCount == 0) {
-        freerdp_channels_global_init();
+        //freerdp_channels_global_init();
         freerdp_register_addin_provider(channelAddinLoadHook, 0);
-        freerdp_wsa_startup();
+        //freerdp_wsa_startup();
     }
     instanceCount++;
 
@@ -152,8 +285,8 @@ FreeRdpClient::~FreeRdpClient() {
 
     instanceCount--;
     if (instanceCount == 0) {
-        freerdp_channels_global_uninit();
-        freerdp_wsa_cleanup();
+        //freerdp_channels_global_uninit();
+        //freerdp_wsa_cleanup();
     }
 }
 
@@ -215,7 +348,6 @@ void FreeRdpClient::run() {
     initFreeRDP();
 
     auto context = freeRdpInstance->context;
-    context->cache = cache_new(freeRdpInstance->settings);
 
     if (!freerdp_connect(freeRdpInstance)) {
         qDebug() << "Failed to connect";
@@ -231,12 +363,15 @@ void FreeRdpClient::run() {
     if (context->cache) {
         cache_free(context->cache);
     }
+    emit disconnected();
+		return;
 }
 
 void FreeRdpClient::initFreeRDP() {
     if (freeRdpInstance) {
         return;
     }
+
     freeRdpInstance = freerdp_new();
 
     freeRdpInstance->ContextSize = sizeof(MyContext);
@@ -246,7 +381,7 @@ void FreeRdpClient::initFreeRDP() {
     freeRdpInstance->VerifyCertificate = nullptr;
     freeRdpInstance->VerifyChangedCertificate = nullptr;
     freeRdpInstance->LogonErrorInfo = nullptr;
-    freeRdpInstance->ReceiveChannelData = ReceiveChannelDataCallback;
+    //freeRdpInstance->ReceiveChannelData = ReceiveChannelDataCallback; // FIXME
     freeRdpInstance->PreConnect = PreConnectCallback;
     freeRdpInstance->PostConnect = PostConnectCallback;
     freeRdpInstance->PostDisconnect = PostDisconnectCallback;
@@ -254,12 +389,18 @@ void FreeRdpClient::initFreeRDP() {
     freerdp_context_new(freeRdpInstance);
     getMyContext(freeRdpInstance)->self = this;
 
+
     auto update = freeRdpInstance->update;
     update->BitmapUpdate = BitmapUpdateCallback;
+    update->EndPaint = EndPaintCallback;
+    update->BeginPaint = BeginPaintCallback;
 
     auto settings = freeRdpInstance->context->settings;
-    settings->EmbeddedWindow = TRUE;
+    settings->Username = "bunny";
+    settings->Password = "secret";
 
+    settings->SoftwareGdi = TRUE;
+    settings->BitmapCacheV3Enabled = TRUE;
     // add sound support
     freeRdpInstance->context->channels = freerdp_channels_new();
 #ifdef WITH_QTSOUND

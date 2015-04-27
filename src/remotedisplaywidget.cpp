@@ -111,14 +111,19 @@ RemoteDisplayWidget::RemoteDisplayWidget(QWidget *parent)
     timer->start();
 }
 
-RemoteDisplayWidget::~RemoteDisplayWidget() {
+void RemoteDisplayWidget::disconnect() {
     Q_D(RemoteDisplayWidget);
     if (d->eventProcessor) {
         QMetaObject::invokeMethod(d->eventProcessor, "requestStop");
-    }
-    d->processorThread->quit();
-    d->processorThread->wait();
+		}
+}
 
+
+RemoteDisplayWidget::~RemoteDisplayWidget() {
+    Q_D(RemoteDisplayWidget);
+		disconnect();
+    d->processorThread->quit();
+ 	  d->processorThread->wait();
     delete d_ptr;
 }
 
@@ -193,4 +198,9 @@ void RemoteDisplayWidget::resizeEvent(QResizeEvent *event) {
     Q_D(RemoteDisplayWidget);
     d->resizeScreenBuffers();
     QWidget::resizeEvent(event);
+}
+
+void RemoteDisplayWidget::closeEvent(QCloseEvent *event) {
+	disconnect();
+	event->accept();
 }

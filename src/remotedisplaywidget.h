@@ -14,6 +14,7 @@ public:
 
     void setDesktopSize(quint16 width, quint16 height);
     void connectToHost(const QString &host, quint16 port);
+    void disconnect();
 
     virtual QSize sizeHint() const;
 
@@ -32,6 +33,7 @@ protected:
     virtual void keyPressEvent(QKeyEvent *event);
     virtual void keyReleaseEvent(QKeyEvent *event);
     virtual void resizeEvent(QResizeEvent *event);
+		void closeEvent(QCloseEvent * event);
 
 private:
     Q_DECLARE_PRIVATE(RemoteDisplayWidget)

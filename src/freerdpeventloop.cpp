@@ -1,6 +1,9 @@
 #include "freerdpeventloop.h"
 #include <freerdp/channels/channels.h>
 #include <QCoreApplication>
+#include <sys/select.h>
+#include <errno.h>
+
 
 FreeRdpEventLoop::FreeRdpEventLoop(QObject *parent) :
     QObject(parent), freeRdpInstance(nullptr) {

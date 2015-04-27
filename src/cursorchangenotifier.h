@@ -29,7 +29,7 @@ public:
     /**
      * Implemented from PointerChangeSink.
      */
-    virtual void addPointer(rdpPointer* pointer);
+    virtual BOOL addPointer(rdpPointer* pointer);
 
     /**
      * Implemented from PointerChangeSink.
@@ -39,7 +39,7 @@ public:
     /**
      * Implemented from PointerChangeSink.
      */
-    virtual void changePointer(rdpPointer* pointer);
+    virtual BOOL changePointer(rdpPointer* pointer);
 
 signals:
     /**

@@ -1,6 +1,7 @@
 #ifndef POINTERCHANGESINK_H
 #define POINTERCHANGESINK_H
 
+#include <winpr/wtypes.h>
 typedef struct rdp_pointer rdpPointer;
 
 /**
@@ -18,7 +19,7 @@ public:
     /**
      * Adds new pointer style to the sink.
      */
-    virtual void addPointer(rdpPointer* pointer) = 0;
+    virtual BOOL addPointer(rdpPointer* pointer) = 0;
 
     /**
      * Removes previously added pointer style.
@@ -28,7 +29,7 @@ public:
     /**
      * Changes current pointer style to given pointer.
      */
-    virtual void changePointer(rdpPointer* pointer) = 0;
+    virtual BOOL changePointer(rdpPointer* pointer) = 0;
 };
 
 #endif // POINTERCHANGESINK_H

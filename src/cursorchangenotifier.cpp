@@ -52,7 +52,7 @@ CursorChangeNotifier::~CursorChangeNotifier() {
     delete d_ptr;
 }
 
-void CursorChangeNotifier::addPointer(rdpPointer* pointer) {
+BOOL CursorChangeNotifier::addPointer(rdpPointer* pointer) {
     Q_D(CursorChangeNotifier);
     int w = pointer->width;
     int h = pointer->height;
@@ -76,6 +76,7 @@ void CursorChangeNotifier::addPointer(rdpPointer* pointer) {
     d->cursorDataMap[d->cursorDataIndex] = new CursorData(image, mask, pointer->xPos, pointer->yPos);
     getMyPointer(pointer)->index = d->cursorDataIndex;
     d->cursorDataIndex++;
+    return TRUE;
 }
 
 void CursorChangeNotifier::removePointer(rdpPointer* pointer) {
@@ -84,12 +85,13 @@ void CursorChangeNotifier::removePointer(rdpPointer* pointer) {
     delete d->cursorDataMap.take(getMyPointer(pointer)->index);
 }
 
-void CursorChangeNotifier::changePointer(rdpPointer* pointer) {
+BOOL CursorChangeNotifier::changePointer(rdpPointer* pointer) {
     Q_D(CursorChangeNotifier);
     // pass the changed pointer index from RDP thread to GUI thread because
     // instances of QCursor should not created outside of GUI thread
     int index = getMyPointer(pointer)->index;
     QMetaObject::invokeMethod(this, "onPointerChanged", Q_ARG(int, index));
+    return TRUE;
 }
 
 void CursorChangeNotifier::onPointerChanged(int index) {

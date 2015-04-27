@@ -1,9 +1,10 @@
 #ifndef FREERDPCLIENT_H
 #define FREERDPCLIENT_H
 
-#include <QWidget>
 #include <QPointer>
+#include <QWidget>
 #include <freerdp/freerdp.h>
+#include <freerdp/gdi/gdi.h>
 
 class FreeRdpEventLoop;
 class Cursor;
@@ -45,16 +46,20 @@ private:
     void sendMouseEvent(UINT16 flags, const QPoint &pos);
     void addStaticChannel(const QStringList& args);
 
-    static void BitmapUpdateCallback(rdpContext *context, BITMAP_UPDATE *updates);
+    static BOOL BitmapUpdateCallback(rdpContext *context, BITMAP_UPDATE *updates);
+    static BOOL EndPaintCallback(rdpContext *context);
+    static BOOL BeginPaintCallback(rdpContext *context);
     static BOOL PreConnectCallback(freerdp* instance);
     static BOOL PostConnectCallback(freerdp* instance);
     static void PostDisconnectCallback(freerdp* instance);
     static int ReceiveChannelDataCallback(freerdp* instance, int channelId,
         BYTE* data, int size, int flags, int total_size);
 
-    static void PointerNewCallback(rdpContext* context, rdpPointer* pointer);
+    static BOOL PointerNewCallback(rdpContext* context, rdpPointer* pointer);
     static void PointerFreeCallback(rdpContext* context, rdpPointer* pointer);
-    static void PointerSetCallback(rdpContext* context, rdpPointer* pointer);
+    static BOOL PointerSetCallback(rdpContext* context, rdpPointer* pointer);
+    static BOOL PointerSetNullCallback(rdpContext* context);
+    static BOOL PointerSetDefaultCallback(rdpContext* context);
 
     freerdp* freeRdpInstance;
     BitmapRectangleSink *bitmapRectangleSink;
