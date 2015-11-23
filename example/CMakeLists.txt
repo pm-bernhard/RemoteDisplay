@@ -1,7 +1,7 @@
 project(RemoteDisplayExample)
 cmake_minimum_required(VERSION 2.8.11)
 
-if(CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_C_COMPILER_ID STREQUAL "Clang")
     add_definitions("-std=gnu++0x")
 endif()
 
@@ -25,6 +25,15 @@ target_link_libraries(${PROJECT_NAME} RemoteDisplay
 	${Qt5Core_LIBRARIES})
 
 include_directories(${RemoteDisplay_SOURCE_DIR})
+
+if (WIN32 AND BUILD_SHARED_LIBS)
+  #copy the needed shared library to the build dir
+  add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different
+      "${CMAKE_CURRENT_BINARY_DIR}/../src/RemoteDisplay.dll"
+      ${CMAKE_CURRENT_BINARY_DIR}
+     )
+endif()
 
 install(TARGETS ${PROJECT_NAME}
     RUNTIME DESTINATION bin

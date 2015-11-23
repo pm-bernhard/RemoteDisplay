@@ -174,6 +174,8 @@ void RemoteDisplayWidget::mousePressEvent(QMouseEvent *event) {
     Q_D(RemoteDisplayWidget);
     d->eventProcessor->sendMousePressEvent(event->button(),
         d->mapToRemoteDesktop(event->pos()));
+
+    this->setFocus(); // Widget needs the focus to receive key presses
 }
 
 void RemoteDisplayWidget::mouseReleaseEvent(QMouseEvent *event) {

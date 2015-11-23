@@ -43,23 +43,18 @@ for Windows and Linux.
 
 ### Building in Linux
 Prerequisites:
-* CMake 2.8.10 or newer
-* FreeRDP from https://github.com/sailfish-sdk/FreeRDP, branch 'build-fixes'
-* Qt 4.8 or newer (5.x not yet supported)
-* gcc 4.5 or newer (for some c++11 features)
 * Git
+* CMake 2.8.11 or newer
+* FreeRDP from https://github.com/FreeRDP/FreeRDP
+* Qt 5 or newer
+* gcc 4.5 or newer (for some c++11 features)
 
 #### Building FreeRDP
-First make sure that you have cmake version 2.8.10 or newer installed, this is
-required for the FreeRDP to generate cmake config files for finding its libraries.
-If you don't have high enough version, then you need to built it yourself,
-refer to [install instructions at cmake's site](http://www.cmake.org/cmake/help/install.html).
-
 To build the FreeRDP, clone its repo first:
 ```
-$ git clone https://github.com/sailfish-sdk/FreeRDP.git
+$ git clone https://github.com/FreeRDP/FreeRDP.git
 $ cd FreeRDP
-$ git checkout build-fixes
+$ To use the last tested version: git reset --hard 070587002c363c1a1094b3368182b5acf6b4bc11
 ```
 Next, cd to its directory and configure the project with cmake:
 ```
@@ -76,7 +71,8 @@ $ sudo make install
 #### Building RemoteDisplay
 First clone the repo:
 ```
-$ git clone https://github.com/sailfish-sdk/RemoteDisplay.git
+$ git clone https://github.com/pm-bernhard/RemoteDisplay.git
+$ git checkout updating
 ```
 Next, cd to its directory and configure, build and install it:
 ```
@@ -96,24 +92,19 @@ Run RemoteDisplayExample without parameters for explanation what the parameters 
 
 ### Building in Windows
 Prerequisites:
-* CMake 2.8.10 or newer
-* FreeRDP from https://github.com/sailfish-sdk/FreeRDP, branch 'build-fixes'
-* Qt 4.8 or newer (5.x not yet supported)
-* Visual Studio 2010
 * Git
+* CMake 2.8.11 or newer
+* FreeRDP from https://github.com/FreeRDP/FreeRDP
+* Qt 5 or newer
+* Visual Studio 2013 (Cummunity Edition is enough)
 
-For running commands use **Start > All Programs > Microsoft Visual Studio 2010 > Visual Studio Tools > Visual Studio Command Prompt (2010)**.
+For running commands use **Start > All Programs > Microsoft Visual Studio 2013 > Visual Studio Tools > Visual Studio Command Prompt (2013)**.
 
 #### Building FreeRDP
-First make sure that you have cmake version 2.8.10 or newer installed, this is
-required for the FreeRDP to generate cmake config files for finding its libraries.
-You can download cmake from [Kitware's CMake download page](http://www.cmake.org/cmake/resources/software.html).
-
 To build the FreeRDP, clone its repo:
 ```
-$ git clone https://github.com/sailfish-sdk/FreeRDP.git
+$ git clone https://github.com/FreeRDP/FreeRDP.git
 $ cd FreeRDP
-$ git checkout build-fixes
 ```
 Next, cd to its directory and configure the project with cmake:
 ```
@@ -131,7 +122,8 @@ $ nmake install
 #### Building RemoteDisplay
 First clone the repo:
 ```
-$ git clone https://github.com/sailfish-sdk/RemoteDisplay.git
+$ git clone https://github.com/pm-bernhard/RemoteDisplay.git
+$ git checkout updating
 ```
 Next, cd to its directory and configure, build and install it:
 ```

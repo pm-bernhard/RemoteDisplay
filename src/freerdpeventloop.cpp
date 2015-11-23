@@ -1,7 +1,9 @@
 #include "freerdpeventloop.h"
 #include <freerdp/channels/channels.h>
 #include <QCoreApplication>
-#include <sys/select.h>
+#ifndef _WIN32
+    #include <sys/select.h>
+#endif
 #include <errno.h>
 
 

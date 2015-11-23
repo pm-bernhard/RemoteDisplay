@@ -401,8 +401,13 @@ void FreeRdpClient::initFreeRDP() {
 
     settings->SoftwareGdi = TRUE;
     settings->BitmapCacheV3Enabled = TRUE;
-    // add sound support
+
     freeRdpInstance->context->channels = freerdp_channels_new();
+    // add shared clipboard support
+    addStaticChannel(QStringList() << "cliprdr");
+
+/*
+    // add sound support
 #ifdef WITH_QTSOUND
     // use Qt Multimedia based audio output
     addStaticChannel(QStringList() << "rdpsnd" << "sys:qt");
@@ -410,6 +415,7 @@ void FreeRdpClient::initFreeRDP() {
     // use what FreeRDP provides
     addStaticChannel(QStringList() << "rdpsnd");
 #endif
+*/
     freerdp_client_load_addins(freeRdpInstance->context->channels, settings);
 }
 
