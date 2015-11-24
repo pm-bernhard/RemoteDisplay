@@ -10,9 +10,14 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 find_package(Qt5Core)
 find_package(Qt5Gui)
+find_package(WinPR)
+find_package(FreeRDP)
 
 include_directories(${Qt5Core_INCLUDE_DIRS})
 include_directories(${Qt5Gui_INCLUDE_DIRS})
+include_directories(${FreeRDP_INCLUDE_DIR})
+include_directories(${WinPR_INCLUDE_DIR})
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 set(SRC_LIST main.cpp)
 

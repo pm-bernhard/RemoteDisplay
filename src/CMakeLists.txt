@@ -16,19 +16,22 @@ find_package(Qt5Core)
 find_package(Qt5Gui)
 find_package(Qt5Multimedia)
 find_package(Qt5Widgets)
+find_package(WinPR)
 find_package(FreeRDP)
 
 include_directories(${Qt5Core_INCLUDE_DIRS})
 include_directories(${Qt5Gui_INCLUDE_DIRS})
 include_directories(${Qt5Multimedia_INCLUDE_DIRS})
 include_directories(${Qt5Widgets_INCLUDE_DIRS})
+include_directories(${FreeRDP_INCLUDE_DIR})
+include_directories(${WinPR_INCLUDE_DIR})
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 if(QT_QTMULTIMEDIA_FOUND)
     set(WITH_QTSOUND 1)
 endif(QT_QTMULTIMEDIA_FOUND)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.in ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 
-include_directories(${FreeRDP_INCLUDE_DIR} ${WinPR_INCLUDE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 
 #aux_source_directory(. SRC_LIST)
 list(APPEND SRC_LIST
