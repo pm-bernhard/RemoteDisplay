@@ -10,8 +10,8 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 find_package(Qt5Core)
 find_package(Qt5Gui)
-find_package(WinPR)
-find_package(FreeRDP)
+find_package(WinPR CONFIG HINTS ${CMAKE_CURRENT_BINARY_DIR}/../../FreeRDP/winpr)
+find_package(FreeRDP CONFIG HINTS ${CMAKE_CURRENT_BINARY_DIR}/../../FreeRDP)
 
 include_directories(${Qt5Core_INCLUDE_DIRS})
 include_directories(${Qt5Gui_INCLUDE_DIRS})
