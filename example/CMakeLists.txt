@@ -10,11 +10,15 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 find_package(Qt5Core)
 find_package(Qt5Gui)
+find_package(Qt5Widgets)
+find_package(Qt5Multimedia)
 find_package(WinPR CONFIG HINTS ${CMAKE_CURRENT_BINARY_DIR}/../../FreeRDP/winpr)
 find_package(FreeRDP CONFIG HINTS ${CMAKE_CURRENT_BINARY_DIR}/../../FreeRDP)
 
 include_directories(${Qt5Core_INCLUDE_DIRS})
 include_directories(${Qt5Gui_INCLUDE_DIRS})
+include_directories(${Qt5Widgets_INCLUDE_DIRS})
+include_directories(${Qt5Multimedia_INCLUDE_DIRS})
 include_directories(${FreeRDP_INCLUDE_DIR})
 include_directories(${WinPR_INCLUDE_DIR})
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -27,7 +31,10 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${QT_EXECUTEABLE_FLAGS}")
 
 target_link_libraries(${PROJECT_NAME} RemoteDisplay
 	${Qt5Gui_LIBRARIES}
-	${Qt5Core_LIBRARIES})
+	${Qt5Core_LIBRARIES}
+	${Qt5Widgets_LIBRARIES}
+	${Qt5Multimedia_LIBRARIES}
+	)
 
 include_directories(${RemoteDisplay_SOURCE_DIR})
 
