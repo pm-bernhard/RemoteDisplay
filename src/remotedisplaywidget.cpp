@@ -6,6 +6,8 @@
 #include "scaledscreenbuffer.h"
 #include "letterboxedscreenbuffer.h"
 
+#include <QApplication>
+#include <QClipboard>
 #include <QDebug>
 #include <QThread>
 #include <QPointer>
@@ -57,6 +59,8 @@ void RemoteDisplayWidgetPrivate::onConnected() {
     eventProcessor->setBitmapRectangleSink(remoteScreenBuffer);
 
     resizeScreenBuffers();
+
+    //QObject::connect(this, SIGNAL(disconnected()), this, SLOT(quit()));
 }
 
 void RemoteDisplayWidgetPrivate::onDisconnected() {
@@ -96,6 +100,7 @@ RemoteDisplayWidget::RemoteDisplayWidget(QWidget *parent)
     auto cursorNotifier = new CursorChangeNotifier(this);
     connect(cursorNotifier, SIGNAL(cursorChanged(QCursor)), d, SLOT(onCursorChanged(QCursor)));
 
+
     d->eventProcessor = new FreeRdpClient(cursorNotifier);
     d->eventProcessor->moveToThread(d->processorThread);
 
@@ -103,6 +108,11 @@ RemoteDisplayWidget::RemoteDisplayWidget(QWidget *parent)
     connect(d->eventProcessor, SIGNAL(connected()), d, SLOT(onConnected()));
     connect(d->eventProcessor, SIGNAL(disconnected()), d, SLOT(onDisconnected()));
     connect(d->eventProcessor, SIGNAL(desktopUpdated()), d, SLOT(onDesktopUpdated()));
+
+    // Enable watching the clipboard (in processorThread)
+    d->clipboard = QApplication::clipboard();
+    d->clipboard->moveToThread(d->processorThread);
+    QObject::connect(d->clipboard, SIGNAL(dataChanged()), d, SLOT(onClipboardDataChanged()));
 
     auto timer = new QTimer(this);
     timer->setSingleShot(false);
@@ -205,4 +215,16 @@ void RemoteDisplayWidget::resizeEvent(QResizeEvent *event) {
 void RemoteDisplayWidget::closeEvent(QCloseEvent *event) {
 	disconnect();
 	event->accept();
+}
+
+void RemoteDisplayWidgetPrivate::onClipboardDataChanged()
+{
+  if (clipboard)
+  {
+    QString newText = clipboard->text();
+    // privacy-note: never log the content of the clipboard because it often contains a user password
+    WLog_DBG(TAG, "Host: got clipboard notification, new text has length: %d  -> notify RDP-Server...", newText.length());
+    eventProcessor->sendNewClipboardDataReady(newText);
+    WLog_DBG(TAG, " ...notification send.");
+  }
 }
