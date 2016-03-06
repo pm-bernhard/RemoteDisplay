@@ -16,8 +16,8 @@ find_package(Qt5Core)
 find_package(Qt5Gui)
 find_package(Qt5Multimedia)
 find_package(Qt5Widgets)
-find_package(WinPR CONFIG HINTS ${CMAKE_CURRENT_BINARY_DIR}/../../FreeRDP/winpr)
-find_package(FreeRDP CONFIG HINTS ${CMAKE_CURRENT_BINARY_DIR}/../../FreeRDP)
+#find_package(WinPR CONFIG HINTS ${CMAKE_CURRENT_BINARY_DIR}/../../FreeRDP/winpr)
+#find_package(FreeRDP CONFIG HINTS ${CMAKE_CURRENT_BINARY_DIR}/../../FreeRDP/libfreerdp)
 
 include_directories(${Qt5Core_INCLUDE_DIRS})
 include_directories(${Qt5Gui_INCLUDE_DIRS})
@@ -25,6 +25,12 @@ include_directories(${Qt5Multimedia_INCLUDE_DIRS})
 include_directories(${Qt5Widgets_INCLUDE_DIRS})
 include_directories(${FreeRDP_INCLUDE_DIR})
 include_directories(${WinPR_INCLUDE_DIR})
+#include_directories(/media/data_ext4/projekte_div/PrivacyMachine/git/pm/build/ext_libs/FreeRDP/winpr/include)
+#include_directories(/media/data_ext4/projekte_div/PrivacyMachine/git/pm/ext_libs/FreeRDP/winpr/include)
+#include_directories(/media/data_ext4/projekte_div/PrivacyMachine/git/pm/ext_libs/FreeRDP/include)
+
+#MESSAGE("XXXXX   ${CMAKE_CURRENT_BINARY_DIR}/../../FreeRDP/winpr/include")
+
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 if(QT_QTMULTIMEDIA_FOUND)

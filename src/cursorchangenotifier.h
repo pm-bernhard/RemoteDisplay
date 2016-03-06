@@ -1,6 +1,7 @@
 #ifndef CURSORCHANGENOTIFIER_H
 #define CURSORCHANGENOTIFIER_H
 
+#include <cstring>
 #include <QObject>
 #include "pointerchangesink.h"
 

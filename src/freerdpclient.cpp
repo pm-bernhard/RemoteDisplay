@@ -356,11 +356,18 @@ FreeRdpClient::~FreeRdpClient()
     //freerdp_channels_global_uninit();
     //freerdp_wsa_cleanup();
   }
+
+  if (loop)
+  {
+    delete (loop);
+    loop = nullptr;
+  }
 }
 
 void FreeRdpClient::requestStop()
 {
-  loop->quit();
+  if(loop)
+    loop->quit();
 }
 
 void FreeRdpClient::sendMouseMoveEvent(const QPoint &pos)
@@ -388,6 +395,9 @@ void FreeRdpClient::sendMouseReleaseEvent(Qt::MouseButton button, const QPoint &
 
 void FreeRdpClient::sendKeyEvent(QKeyEvent *event)
 {
+  if (!freeRdpInstance)
+    return;
+
   if (event->isAutoRepeat()) {
     return;
   }
@@ -430,7 +440,8 @@ void FreeRdpClient::run()
     return;
   }
 
-  loop->exec(freeRdpInstance);
+  if (loop)
+    loop->exec(freeRdpInstance);
 
   freerdp_channels_close(context->channels, freeRdpInstance);
   freerdp_disconnect(freeRdpInstance);
@@ -903,6 +914,8 @@ void FreeRdpClient::sendNewClipboardDataReady(QString newText)
 {
   WLog_DBG(TAG, " calling sendNewClipboardDataReady()");
   QtContext* qtc = getQtContextFromFreeRDPInstance(freeRdpInstance);
+  if (!qtc)
+    return;
 
   rememberCurrentClipboardText(qtc, newText);
 
