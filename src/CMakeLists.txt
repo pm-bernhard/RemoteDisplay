@@ -1,5 +1,5 @@
 project(LibRemoteDisplay)
-cmake_minimum_required (VERSION 3.2)
+cmake_minimum_required (VERSION 3.0.2)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_C_COMPILER_ID STREQUAL "Clang")
     add_definitions("-std=gnu++0x")

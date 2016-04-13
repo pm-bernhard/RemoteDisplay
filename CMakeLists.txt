@@ -1,18 +1,14 @@
 project(RemoteDisplay-toplevel C CXX)
-cmake_minimum_required (VERSION 3.2)
+cmake_minimum_required (VERSION 3.0.2)
 
 set(CMAKE_COLOR_MAKEFILE ON)
 
 # search the FreeRDP Library
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
-if(NOT DEFINED FREERDP_ROOT_DIR)
-  set (FREERDP_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../FreeRDP")
-  set (FREERDP_INCLUDE_DIR "${FREERDP_ROOT_DIR}/include")
-endif()
-
 find_package(FreeRDP REQUIRED)
-MESSAGE("FREERDP_INCLUDE_DIR: ${FREERDP_INCLUDE_DIR}")
+MESSAGE("found FREERDP_INCLUDE_DIR: ${FREERDP_INCLUDE_DIR}")
+MESSAGE("found FREERDP_LIBRARIES: ${FREERDP_LIBRARIES}")
 
 # Tell CMake to run moc when necessary:
 set(CMAKE_AUTOMOC ON)

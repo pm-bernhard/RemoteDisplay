@@ -160,40 +160,47 @@ elseif(UNIX)
     endif(NOT LIB_FREERDP)
 endif(WIN32 AND NOT CYGWIN)
 
-if(LIB_FREERDP)
+if(NOT DEFINED FREERDP_LIBRARIES)
+  if(LIB_FREERDP)
     mark_as_advanced(LIB_FREERDP)
     set(FREERDP_LIBRARIES ${LIB_FREERDP})
-else(NOT LIB_FREERDP)
+  else(NOT LIB_FREERDP)
     mark_as_advanced(LIB_FREERDP_CORE LIB_FREERDP_CODEC LIB_FREERDP_GDI LIB_FREERDP_CACHE)
     set(FREERDP_LIBRARIES ${LIB_FREERDP_CORE} ${LIB_FREERDP_CODEC} ${LIB_FREERDP_GDI} ${LIB_FREERDP_CACHE})
-endif(LIB_FREERDP)
-
+  endif(LIB_FREERDP)
+endif()
 
 if (FREERDP_INCLUDE_DIR)
 	if(_FREERDP_VERSION)
 		set(FREERDP_VERSION "${_FREERDP_VERSION}")
 	elseif(FREERDP_INCLUDE_DIR AND EXISTS "${FREERDP_INCLUDE_DIR}/freerdp/version.h")
-		file(STRINGS "${FREERDP_INCLUDE_DIR}/freerdp/version.h" _freerdp_major_version
+    set (FREERDP_VERSION_FILE "${FREERDP_INCLUDE_DIR}/freerdp/version.h")
+  elseif(EXISTS "${CMAKE_CURRENT_BINARY_DIR}/../FreeRDP/include/freerdp/version.h")
+    set (FREERDP_VERSION_FILE "${CMAKE_CURRENT_BINARY_DIR}/../FreeRDP/include/freerdp/version.h")
+ endif()
+endif()
+
+if (FREERDP_VERSION_FILE) 
+		file(STRINGS ${FREERDP_VERSION_FILE} _freerdp_major_version
 		REGEX "^#define[\t ]+FREERDP_VERSION_MAJOR[\t ]+[0-9]")
 
 		string(REGEX REPLACE "^#define[\t ]+FREERDP_VERSION_MAJOR[\t ]+" "" 
 			FREERDP_MAJOR_VERSION ${_freerdp_major_version})
 
-		file(STRINGS "${FREERDP_INCLUDE_DIR}/freerdp/version.h" _freerdp_minor_version
+		file(STRINGS ${FREERDP_VERSION_FILE} _freerdp_minor_version
 		REGEX "^#define[\t ]+FREERDP_VERSION_MINOR[\t ]+[0-9]")
 
 		string(REGEX REPLACE "^#define[\t ]+FREERDP_VERSION_MINOR[\t ]+" "" 
 			FREERDP_MINOR_VERSION ${_freerdp_minor_version})
 
-		file(STRINGS "${FREERDP_INCLUDE_DIR}/freerdp/version.h" _freerdp_revision_version
+		file(STRINGS ${FREERDP_VERSION_FILE} _freerdp_revision_version
 		REGEX "^#define[\t ]+FREERDP_VERSION_REVISION[\t ]+[0-9]")
 
 		string(REGEX REPLACE "^#define[\t ]+FREERDP_VERSION_REVISION[\t ]+" "" 
 			FREERDP_REVISION_VERSION ${_freerdp_revision_version})
 
 		SET(FREERDP_VERSION "${FREERDP_MAJOR_VERSION}.${FREERDP_MINOR_VERSION}.${FREERDP_REVISION_VERSION}")
-	endif(_FREERDP_VERSION)
-endif(FREERDP_INCLUDE_DIR)
+endif()
 
 if(FREERDP_VERSION)
 	find_package_handle_standard_args(FreeRDP
