@@ -70,7 +70,7 @@ BOOL CursorChangeNotifier::addPointer(rdpPointer* pointer) {
             mask.setPixel(x, y, freerdp_get_pixel(data, x, y, w, h, 1));
         }
     }
-    delete data;
+    delete[] data;
 
     QMutexLocker(&d->mutex);
     d->cursorDataMap[d->cursorDataIndex] = new CursorData(image, mask, pointer->xPos, pointer->yPos);

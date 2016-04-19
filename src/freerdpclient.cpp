@@ -152,6 +152,9 @@ void FreeRdpClient::PostDisconnectCallback(freerdp* instance)
   if (!qtc || !qtc->self)
     return;
 
+  if (instance && instance->context && instance->context->gdi)
+    gdi_free(instance);
+
   emit qtc->self->disconnected();
 }
 
@@ -346,6 +349,11 @@ FreeRdpClient::~FreeRdpClient()
     }
 
     freerdp_channels_free(freeRdpInstance->context->channels);
+
+    // gdi data has to be deallocated before deallocating the rdp_context structure (see freerdp.h for details)
+    if (freeRdpInstance->context && freeRdpInstance->context->gdi)
+      gdi_free(freeRdpInstance);
+
     freerdp_context_free(freeRdpInstance);
     freerdp_free(freeRdpInstance);
     freeRdpInstance = nullptr;
@@ -476,6 +484,12 @@ void FreeRdpClient::initFreeRDP()
   // Create the context 'QtContext' (we have to initialize it ourself)
   freerdp_context_new(freeRdpInstance); // freerdp_context_free() is called in the desctructor of FreeRdpClient()
 
+  if (!freeRdpInstance->update)
+  {
+    WLog_ERR(TAG, "freerdp_context_new() did not correctly initialialized freerdp->update");
+    return;
+  }
+
   QtContext* qtc = getQtContextFromFreeRDPInstance(freeRdpInstance);
   initQtContext(qtc);
   qtc->self = this;
@@ -522,20 +536,18 @@ void FreeRdpClient::sendMouseEvent(UINT16 flags, const QPoint &pos)
   }
 }
 
-void FreeRdpClient::addStaticChannel(const QStringList &args)
+void FreeRdpClient::addStaticChannel(const QStringList &channelList)
 {
-  auto argsArray = new char*[args.size()];
-  QList<char*> delList;
-
-  for (int i = 0; i < args.size(); i++) {
-    auto d = args[i].toLocal8Bit();
-    delList << (argsArray[i] = _strdup(d.data()));
+  // Iterate over the list of channels and call the API with a 8bit string
+  QStringList::const_iterator constIterator;
+  for (constIterator = channelList.constBegin(); constIterator != channelList.constEnd(); ++constIterator)
+  {
+    QByteArray eightBitData((*constIterator).toLocal8Bit(), (*constIterator).toLocal8Bit().size());
+    char* eightBitDataPtr = eightBitData.data();
+    freerdp_client_add_static_channel(freeRdpInstance->settings,
+                                      1,
+                                      &eightBitDataPtr);
   }
-
-  freerdp_client_add_static_channel(freeRdpInstance->settings, args.size(), argsArray);
-
-  qDeleteAll(delList);
-  delete[] argsArray;
 }
 
 void FreeRdpClient::setSettingServerHostName(const QString &host)
