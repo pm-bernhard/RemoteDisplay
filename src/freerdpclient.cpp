@@ -33,6 +33,8 @@ UINT16 qtMouseButtonToRdpButton(Qt::MouseButton button)
     return PTR_FLAGS_BUTTON1;
   } else if (button == Qt::RightButton) {
     return PTR_FLAGS_BUTTON2;
+  } else if (button == Qt::MidButton) {
+    return PTR_FLAGS_BUTTON3;
   }
   return 0;
 }
@@ -399,6 +401,23 @@ void FreeRdpClient::sendMouseReleaseEvent(Qt::MouseButton button, const QPoint &
     return;
   }
   sendMouseEvent(rdpButton, pos);
+}
+
+void FreeRdpClient::sendMouseWheelEvent(QWheelEvent *event)
+{
+  if (event)
+  {
+    QPoint zero(0, 0);
+    QPoint change = event->angleDelta();
+    if (change.y() > 0)
+    {
+      sendMouseEvent(PTR_FLAGS_WHEEL | 0x0078, zero);
+    }
+    else
+    {
+      sendMouseEvent(PTR_FLAGS_WHEEL | PTR_FLAGS_WHEEL_NEGATIVE | 0x0088, zero);
+    }
+  }
 }
 
 void FreeRdpClient::sendKeyEvent(QKeyEvent *event)

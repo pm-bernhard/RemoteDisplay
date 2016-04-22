@@ -30,6 +30,7 @@ public:
     void sendMouseMoveEvent(const QPoint &pos);
     void sendMousePressEvent(Qt::MouseButton button, const QPoint &pos);
     void sendMouseReleaseEvent(Qt::MouseButton button, const QPoint &pos);
+    void sendMouseWheelEvent(QWheelEvent *event);
     void sendKeyEvent(QKeyEvent *event);
     void sendNewClipboardDataReady(QString newText);
 
