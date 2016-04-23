@@ -52,28 +52,55 @@ CursorChangeNotifier::~CursorChangeNotifier() {
     delete d_ptr;
 }
 
+void CursorChangeNotifier::qt_freerdp_alpha_cursor_convert(BYTE* alphaData, BYTE* andMask, int width, int height, int bpp)
+{
+  // This is a modified copy of freerdp_alpha_cursor_convert() located in libfreerdp/codec/color.c
+  UINT32 andPixel;
+  UINT32 x, y, jj;
+
+  for (y = 0; y < height; y++)
+  {
+    jj = (bpp == 1) ? y : (height - 1) - y;
+
+    for (x = 0; x < width; x++)
+    {
+      andPixel = freerdp_get_pixel(andMask, x, jj, width, height, 1);
+
+      if (andPixel)
+        freerdp_set_pixel(alphaData, x, y, width, height, 32, 0xFFFFFF);
+      else
+        freerdp_set_pixel(alphaData, x, y, width, height, 32, 0);
+    }
+  }
+}
+
 BOOL CursorChangeNotifier::addPointer(rdpPointer* pointer) {
     Q_D(CursorChangeNotifier);
-    int w = pointer->width;
-    int h = pointer->height;
 
-    // build cursor image
-    QImage image(w, h, bppToImageFormat(pointer->xorBpp));
-    freerdp_image_flip(pointer->xorMaskData, image.bits(), w, h, image.depth());
+    if (!pointer)
+        return FALSE;
 
-    // build cursor's mask image
-    auto data = new BYTE[pointer->lengthAndMask];
-    freerdp_bitmap_flip(pointer->andMaskData, data, (w + 7) / 8, h);
-    QImage mask(w, h, QImage::Format_Mono);
-    for(int y = 0; y < h; y++) {
-        for(int x = 0; x < w; x++) {
-            mask.setPixel(x, y, freerdp_get_pixel(data, x, y, w, h, 1));
-        }
+    QImage ci(pointer->width, pointer->height, QImage::Format_RGB32); // qt uses ARGB internal
+    QImage mask(pointer->width, pointer->height, QImage::Format_RGB32);
+
+    if (freerdp_image_copy_from_pointer_data(
+          (BYTE*) ci .constBits(), PIXEL_FORMAT_ARGB32,
+          pointer->width * 4, 0, 0, pointer->width, pointer->height,
+          pointer->xorMaskData, pointer->lengthXorMask,
+          pointer->andMaskData, pointer->lengthAndMask,
+          pointer->xorBpp, NULL) < 0)
+    {
+        return FALSE;
     }
-    delete[] data;
+
+    if ((pointer->andMaskData != 0) && (pointer->xorMaskData != 0))
+    {
+        qt_freerdp_alpha_cursor_convert((BYTE*)mask.constBits(), pointer->andMaskData,
+                                        pointer->width, pointer->height, pointer->xorBpp);
+    }
 
     QMutexLocker(&d->mutex);
-    d->cursorDataMap[d->cursorDataIndex] = new CursorData(image, mask, pointer->xPos, pointer->yPos);
+    d->cursorDataMap[d->cursorDataIndex] = new CursorData(ci, mask, pointer->xPos, pointer->yPos);
     getMyPointer(pointer)->index = d->cursorDataIndex;
     d->cursorDataIndex++;
     return TRUE;
