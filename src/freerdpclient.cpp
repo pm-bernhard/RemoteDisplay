@@ -97,7 +97,7 @@ BOOL FreeRdpClient::PreConnectCallback(freerdp* instance)
 
 
   freerdp_register_addin_provider(freerdp_channels_load_static_addin_entry, 0);
-  freerdp_client_load_addins(instance->context->channels, instance->settings);
+  //freerdp_client_load_addins(instance->context->channels, instance->settings);
 
   freerdp_channels_pre_connect(instance->context->channels, instance);
 

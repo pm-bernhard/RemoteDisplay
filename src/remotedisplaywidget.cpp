@@ -100,6 +100,8 @@ RemoteDisplayWidget::RemoteDisplayWidget(QWidget *parent)
     auto cursorNotifier = new CursorChangeNotifier(this);
     connect(cursorNotifier, SIGNAL(cursorChanged(QCursor)), d, SLOT(onCursorChanged(QCursor)));
 
+    // We want to filter the TAB-Key and send it over RDP, all other events should not be filtered
+    installEventFilter(this);
 
     d->eventProcessor = new FreeRdpClient(cursorNotifier);
     d->eventProcessor->moveToThread(d->processorThread);
@@ -206,6 +208,23 @@ void RemoteDisplayWidget::keyPressEvent(QKeyEvent *event) {
     Q_D(RemoteDisplayWidget);
     d->eventProcessor->sendKeyEvent(event);
     event->accept();
+}
+
+bool RemoteDisplayWidget::eventFilter(QObject *obj, QEvent *event) {
+  Q_D(RemoteDisplayWidget);
+
+  // We want to filter the TAB-Key and send it over RDP, all other events should not be filtered
+  if (event->type() == QEvent::KeyPress)
+  {
+    QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
+    if (keyEvent->key() == Qt::Key_Tab || keyEvent->key() == Qt::Key_Backtab)
+    {
+      WLog_DBG(TAG, "Tab-Key send to RDP-Server");
+      d->eventProcessor->sendKeyEvent(keyEvent);
+      return true;
+    }
+  }
+  return false;
 }
 
 void RemoteDisplayWidget::keyReleaseEvent(QKeyEvent *event) {
