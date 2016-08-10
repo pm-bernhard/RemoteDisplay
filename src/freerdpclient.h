@@ -32,6 +32,7 @@ public:
     void sendMouseReleaseEvent(Qt::MouseButton button, const QPoint &pos);
     void sendMouseWheelEvent(QWheelEvent *event);
     void sendKeyEvent(QKeyEvent *event);
+    void sendKeyboardPauseEvent();
     void sendNewClipboardDataReady(QString newText);
 
 public slots:

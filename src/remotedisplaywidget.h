@@ -2,6 +2,7 @@
 #define REMOTEDISPLAYWIDGET_H
 
 #include <QWidget>
+#include <QMap>
 #include "global.h"
 
 class RemoteDisplayWidgetPrivate;
@@ -35,9 +36,17 @@ protected:
     virtual void keyPressEvent(QKeyEvent *event);
     virtual void keyReleaseEvent(QKeyEvent *event);
     virtual void resizeEvent(QResizeEvent *event);
+    virtual void focusOutEvent(QFocusEvent *event);
 		void closeEvent(QCloseEvent * event);
+    void addControlKey(Qt::Key key);
+    void removeControlKey(Qt::Key key);
+    void rememberCurrentControlKeys(int currentKeyboardModifiers, quint64 nativeScanCode);
 
 private:
+    // OR-Combinations of currently pressed control keys, i.e. alt, control, shift
+    QMap<Qt::Key, Qt::Key> currentPressedControllKeys_;
+    bool lastKeyPressReleased_;
+
     Q_DECLARE_PRIVATE(RemoteDisplayWidget)
     RemoteDisplayWidgetPrivate* const d_ptr;
 };

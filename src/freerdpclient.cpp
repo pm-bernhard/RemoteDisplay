@@ -420,6 +420,18 @@ void FreeRdpClient::sendMouseWheelEvent(QWheelEvent *event)
   }
 }
 
+void FreeRdpClient::sendKeyboardPauseEvent()
+{
+  if (!freeRdpInstance)
+    return;
+
+  auto input = freeRdpInstance->input;
+
+  if (input) {
+    freerdp_input_send_keyboard_pause_event(input);
+  }
+}
+
 void FreeRdpClient::sendKeyEvent(QKeyEvent *event)
 {
   if (!freeRdpInstance)

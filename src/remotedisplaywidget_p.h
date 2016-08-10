@@ -33,6 +33,7 @@ public:
     QPointer<QClipboard> clipboard;
 
     bool repaintNeeded;
+    bool lastKeyPressReleased;
 
     Q_DECLARE_PUBLIC(RemoteDisplayWidget)
     RemoteDisplayWidget* const q_ptr;
