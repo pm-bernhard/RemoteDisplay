@@ -29,19 +29,19 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${QT_EXECUTEABLE_FLAGS}")
 # Link Qt-Modules
 qt5_use_modules(${PROJECT_NAME} Widgets Core)
 
-target_link_libraries(${PROJECT_NAME} LibRemoteDisplay)
+target_link_libraries(${PROJECT_NAME} RemoteDisplay)
 
-include_directories(${LibRemoteDisplay_SOURCE_DIR})
+include_directories(${RemoteDisplay_SOURCE_DIR})
 
-if (WIN32 AND BUILD_SHARED_LIBS)
-  #copy the needed shared library to the build dir
-  add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-      COMMAND ${CMAKE_COMMAND} -E copy_if_different
-      "${CMAKE_CURRENT_BINARY_DIR}/../src/LibRemoteDisplay.dll"
-      ${CMAKE_CURRENT_BINARY_DIR}
-     )
-endif()
-
-install(TARGETS ${PROJECT_NAME}
-    RUNTIME DESTINATION bin
-)
+#if (WIN32 AND BUILD_SHARED_LIBS)
+#  #copy the needed shared library to the build dir
+#  add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+#      COMMAND ${CMAKE_COMMAND} -E copy_if_different
+#      "${CMAKE_CURRENT_BINARY_DIR}/../src/RemoteDisplay.dll"
+#      ${CMAKE_CURRENT_BINARY_DIR}
+#     )
+#endif()
+#
+#install(TARGETS ${PROJECT_NAME}
+#    RUNTIME DESTINATION bin
+#)

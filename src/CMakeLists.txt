@@ -1,4 +1,4 @@
-project(LibRemoteDisplay)
+project(RemoteDisplay)
 cmake_minimum_required (VERSION 3.0.2)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_C_COMPILER_ID STREQUAL "Clang")
@@ -66,9 +66,9 @@ qt5_use_modules(${PROJECT_NAME} Widgets Core)
 
 target_link_libraries(${PROJECT_NAME} freerdp freerdp-client)
 
-install(TARGETS ${PROJECT_NAME}
-    RUNTIME DESTINATION bin
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
-)
-install(FILES remotedisplaywidget.h global.h DESTINATION include/RemoteDisplay)
+#install(TARGETS ${PROJECT_NAME}
+#    RUNTIME DESTINATION bin
+#    LIBRARY DESTINATION lib
+#    ARCHIVE DESTINATION lib
+#)
+#install(FILES remotedisplaywidget.h global.h DESTINATION include/RemoteDisplay)
