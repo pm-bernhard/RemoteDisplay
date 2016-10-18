@@ -41,7 +41,9 @@ include_directories(${RemoteDisplay_SOURCE_DIR})
 #      ${CMAKE_CURRENT_BINARY_DIR}
 #     )
 #endif()
-#
-#install(TARGETS ${PROJECT_NAME}
-#    RUNTIME DESTINATION bin
-#)
+
+if (NOT REMOTEDISPLAY_SKIP_INSTALL_CLIENT)
+  install(TARGETS ${PROJECT_NAME}
+      RUNTIME DESTINATION ${REMOTEDISPLAY_INSTALL_PREFIX}bin
+  )
+endif()

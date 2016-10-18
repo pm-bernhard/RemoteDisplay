@@ -66,9 +66,11 @@ qt5_use_modules(${PROJECT_NAME} Widgets Core)
 
 target_link_libraries(${PROJECT_NAME} freerdp freerdp-client)
 
-#install(TARGETS ${PROJECT_NAME}
-#    RUNTIME DESTINATION bin
-#    LIBRARY DESTINATION lib
-#    ARCHIVE DESTINATION lib
-#)
-#install(FILES remotedisplaywidget.h global.h DESTINATION include/RemoteDisplay)
+install(TARGETS ${PROJECT_NAME}
+    RUNTIME DESTINATION ${REMOTEDISPLAY_INSTALL_PREFIX}bin
+    LIBRARY DESTINATION ${REMOTEDISPLAY_INSTALL_PREFIX}lib
+    ARCHIVE DESTINATION ${REMOTEDISPLAY_INSTALL_PREFIX}lib
+)
+if (NOT REMOTEDISPLAY_SKIP_INSTALL_HEADER)
+  install(FILES remotedisplaywidget.h global.h DESTINATION include/RemoteDisplay)
+endif()
