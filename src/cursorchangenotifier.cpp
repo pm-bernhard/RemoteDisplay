@@ -12,6 +12,70 @@
 
 namespace {
 
+// Fix for freerdp 2.0
+int freerdp_get_pixel(BYTE* data, int x, int y, int width, int height, int bpp)
+{
+	int start;
+	int shift;
+	UINT16* src16;
+	UINT32* src32;
+	int red, green, blue;
+
+	switch (bpp)
+	{
+		case  1:
+			width = (width + 7) / 8;
+			start = (y * width) + x / 8;
+			shift = x % 8;
+			return (data[start] & (0x80 >> shift)) != 0;
+		case 8:
+			return data[y * width + x];
+		case 15:
+		case 16:
+			src16 = (UINT16*) data;
+			return src16[y * width + x];
+		case 24:
+			data += y * width * 3;
+			data += x * 3;
+			red = data[0];
+			green = data[1];
+			blue = data[2];
+			return (red << 16) | (green << 8) | blue;
+		case 32:
+			src32 = (UINT32*) data;
+			return src32[y * width + x];
+		default:
+			break;
+	}
+
+	return 0;
+}
+
+void freerdp_set_pixel(BYTE* data, int x, int y, int width, int height, int bpp, int pixel)
+{
+	int start;
+	int shift;
+	int *dst32;
+
+	if (bpp == 1)
+	{
+		width = (width + 7) / 8;
+		start = (y * width) + x / 8;
+		shift = x % 8;
+		if (pixel)
+			data[start] = data[start] | (0x80 >> shift);
+		else
+			data[start] = data[start] & ~(0x80 >> shift);
+	}
+	else if (bpp == 32)
+	{
+		dst32 = (int*) data;
+		dst32[y * width + x] = pixel;
+	}
+}
+
+
+
 struct CursorData {
     CursorData(const QImage &image, const QImage &mask, int hotX, int hotY)
         : image(image), mask(mask), hotX(hotX), hotY(hotY) {

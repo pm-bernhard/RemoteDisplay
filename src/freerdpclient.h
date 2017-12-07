@@ -10,6 +10,8 @@
 // Set Tag for logging with WLog_DBG, WLog_INFO,...
 #define TAG CLIENT_TAG ("qt")
 
+
+
 class FreeRdpEventLoop;
 class Cursor;
 class BitmapRectangleSink;

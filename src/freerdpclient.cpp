@@ -12,6 +12,8 @@
 #include <freerdp/client/channels.h>
 #include <freerdp/client/cmdline.h>
 #include <freerdp/codec/bitmap.h>
+#include <../libfreerdp/core/client.h>
+#include <freerdp/codec/color.h>
 #ifdef Q_OS_UNIX
 #include <freerdp/locale/keyboard.h>
 #endif
@@ -37,17 +39,6 @@ UINT16 qtMouseButtonToRdpButton(Qt::MouseButton button)
     return PTR_FLAGS_BUTTON3;
   }
   return 0;
-}
-
-void* channelAddinLoadHook(LPCSTR pszName, LPSTR pszSubsystem, LPSTR pszType, DWORD dwFlags)
-{
-  QString name = pszName;
-  QString subSystem = pszSubsystem;
-
-  if (name == "rdpsnd" && subSystem == "qt") {
-    return (void*)RdpQtSoundPlugin::create;
-  }
-  return freerdp_channels_load_static_addin_entry(pszName, pszSubsystem, pszType, dwFlags);
 }
 
 }
@@ -99,7 +90,7 @@ BOOL FreeRdpClient::PreConnectCallback(freerdp* instance)
   freerdp_register_addin_provider(freerdp_channels_load_static_addin_entry, 0);
   //freerdp_client_load_addins(instance->context->channels, instance->settings);
 
-  freerdp_channels_pre_connect(instance->context->channels, instance);
+  //freerdp_channels_pre_connect(instance->context->channels, instance);
 
   emit qtc->self->aboutToConnect();
 
@@ -117,12 +108,9 @@ BOOL FreeRdpClient::PostConnectCallback(freerdp* instance)
   UINT32 gdi_flags;
   pointer_cache_register_callbacks(instance->update);
 
-  if (instance->settings->ColorDepth > 16)
-    gdi_flags = CLRBUF_32BPP; //| CLRCONV_ALPHA | CLRCONV_INVERT;
-  else
-    gdi_flags = CLRBUF_16BPP;
-
-  gdi_init(instance, gdi_flags, NULL);
+  //magic by PM: PIXEL_FORMAT_RGBA32 : PIXEL_FORMAT_BGRA32;
+  gdi_flags = PIXEL_FORMAT_RGB24;
+  gdi_init(instance, gdi_flags);
 
 
 
@@ -131,7 +119,7 @@ BOOL FreeRdpClient::PostConnectCallback(freerdp* instance)
   pointer.size = self->pointerChangeSink->getPointerStructSize();
   pointer.New = PointerNewCallback;
   pointer.Free = PointerFreeCallback;
-  pointer.Set = PointerSetCallback;
+  pointer.Set = (pPointer_Set)PointerSetCallback;
   pointer.SetNull = PointerSetNullCallback;
   pointer.SetDefault = PointerSetDefaultCallback;
   graphics_register_pointer(qtc->freeRdpContext.graphics, &pointer);
@@ -141,7 +129,7 @@ BOOL FreeRdpClient::PostConnectCallback(freerdp* instance)
   freerdp_keyboard_init(settings->KeyboardLayout);
 #endif
 
-  freerdp_channels_post_connect(instance->context->channels, instance);
+//  freerdp_channels_post_connect(instance->context->channels, instance);
 
   emit self->connected();
 
@@ -270,8 +258,10 @@ BOOL FreeRdpClient::EndPaintCallback(rdpContext *context)
 
 #endif
   rdpGdi *gdi = context->gdi;
-  QByteArray data = QByteArray((const char *)gdi->primary_buffer, gdi->width*gdi->height*gdi->bytesPerPixel);
-
+  UINT32 bytesPerPixel = GetBytesPerPixel(gdi->hdc->format);
+  QByteArray data = QByteArray((const char *)gdi->primary_buffer, gdi->width*gdi->height*bytesPerPixel);
+  //Quickhack:
+  //QByteArray data = QByteArray((const char *)gdi->primary_buffer, 2);
   QRect rect(0, 0, gdi->width, gdi->height);
   sink->addRectangle(rect, data);
   emit self->desktopUpdated();
@@ -326,7 +316,7 @@ FreeRdpClient::FreeRdpClient(PointerChangeSink *pointerSink)
 
   if (instanceCount == 0) {
     //freerdp_channels_global_init();
-    freerdp_register_addin_provider(channelAddinLoadHook, 0);
+    //freerdp_register_addin_provider(channelAddinLoadHook, 0);
     //freerdp_wsa_startup();
   }
   instanceCount++;
@@ -350,7 +340,7 @@ FreeRdpClient::~FreeRdpClient()
       qtc->cliprdrContext = 0;
     }
 
-    freerdp_channels_free(freeRdpInstance->context->channels);
+//    freerdp_channels_free(freeRdpInstance->context->channels);
 
     // gdi data has to be deallocated before deallocating the rdp_context structure (see freerdp.h for details)
     if (freeRdpInstance->context && freeRdpInstance->context->gdi)
@@ -482,7 +472,7 @@ void FreeRdpClient::run()
   if (loop)
     loop->exec(freeRdpInstance);
 
-  freerdp_channels_close(context->channels, freeRdpInstance);
+//  freerdp_channels_close(context->channels, freeRdpInstance);
   freerdp_disconnect(freeRdpInstance);
 
   if (context->cache) {
@@ -526,7 +516,7 @@ void FreeRdpClient::initFreeRDP()
   qtc->self = this;
 
   auto update = freeRdpInstance->update;
-  update->BitmapUpdate = BitmapUpdateCallback;
+  update->BitmapUpdate = (pBitmapUpdate)BitmapUpdateCallback;
   update->EndPaint = EndPaintCallback;
   update->BeginPaint = BeginPaintCallback;
 
@@ -535,12 +525,13 @@ void FreeRdpClient::initFreeRDP()
   settings->Password = _strdup("secret");
 
   settings->SoftwareGdi = TRUE;
+  settings->ColorDepth = 24;
   settings->BitmapCacheV3Enabled = TRUE;
 
-  freeRdpInstance->context->channels = freerdp_channels_new();
+//  freeRdpInstance->context->channels = freerdp_channels_new(freeRdpInstance);
 
   // add shared clipboard support
-  addStaticChannel(QStringList() << "cliprdr");
+  //addStaticChannel(QStringList() << "cliprdr");
 
   /*
     // add sound support
